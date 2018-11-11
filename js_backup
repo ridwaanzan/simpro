@@ -1,0 +1,92 @@
+
+        $(document).ready(function () {
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf_token"]').attr('content')
+                }
+            });
+            $('#btnAdd').on('click', function() {
+                $('#titleAdd').text('Tambah Data Jurusan');
+                $('#modalAdd').modal('show');
+            });
+        });
+        var table, save_method;
+        $(function() {
+            table = $('.table').DataTable({
+                "processing" : true,
+                "serverside" : true,
+                "ajax" : "{!! route('datajurusan') !!}"
+            });
+        });
+
+        $('#formAdd').on('submit', function(e) {
+            e.preventDefault();
+            var data = $(this).serialize();
+            $.ajax({
+                type : 'post',
+                url  : "{{url('admin/jurusan')}}",
+                data : data,
+                success : function(data) {
+                $('#form-jurusan').trigger('reset');
+                $('#modalAdd').modal('hide');
+                table.ajax.reload();
+                },
+                error : function() {
+                    alert("tidak dapat menyimpan data");
+                }
+            });
+        });
+
+        $('body').on('click', '#btnEdit', function() {
+            var LinkID = $(this).val();
+            $.get('{{url("admin/jurusan")}}/' + LinkID, function(data) {
+                $('.modal-title').text('Edit Data Jurusan');
+                $('#idText').val(data.id);
+                $('#namaText').val(data.nama);
+                $('#btnUpdate').val('Update');
+                $('#modalEdit').modal('show');
+            });
+        });
+
+        $('body').on('click', '#btnUpdate', function() {
+            var LinkID = $('#idText').val();
+            var nama = $('#namaText').val();
+            $.ajax({
+                type: 'post',
+                url : "{{url('jurusanUpdate')}}",
+                data: {
+                    'id': LinkID,
+                    'nama': nama
+                },
+                success: function(data) {
+                    table.ajax.reaload();
+                    $('#modalEdit').modal('hide');
+                }
+            });
+        });
+
+        $('body').on('click', '#btnDelete', function() {
+            var LinkID = $(this).val();
+            $.get('{{url("admin/jurusan")}}/' + LinkID, function(data) {
+                $('#titleModDelete').text('Hapus Data Jurusan');
+                $('#idDel').val(data.id);
+                $('#IDnya').text('Apakah anda yakin ingin menghapus data jurusan: ' + data.nama + '?');
+                $('#btnHapus').text('Delete');
+                $('#modalDelete').modal('show');
+            });
+        });
+
+        $('body').on('click', '#btnHapus', function() {
+            var LinkID = $('#idDel').val();
+            $.ajax({
+                type: 'post',
+                url: "{{url('deleteJurusan')}}",
+                data: {
+                    'id' : LinkID
+                },
+                success: function(data) {
+                    $('#modalDelete').modal('hide');
+                    $('#item' + LinkID).remove();
+                }
+            });
+        });
